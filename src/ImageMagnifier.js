@@ -1,6 +1,19 @@
+'use strict';
+
+var _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i];for (var key in source) {
+            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                target[key] = source[key];
+            }
+        }
+    }return target;
+};
+
 var React = require('react');
 
 var Magnifier = React.createClass({
+    displayName: 'Magnifier',
 
     propTypes: {
 
@@ -40,19 +53,15 @@ var Magnifier = React.createClass({
         }).isRequired
     },
 
-    render () {
+    render: function render() {
         var props = this.props;
         var halfSize = props.size / 2;
         var magX = props.zoomImage.width / props.smallImage.width;
         var magY = props.zoomImage.height / props.smallImage.height;
-        var bgX = -(props.offsetX*magX - halfSize);
-        var bgY = -(props.offsetY*magY - halfSize);
-        var isVisible = props.offsetY < props.smallImage.height &&
-                        props.offsetX < props.smallImage.width &&
-                        props.offsetY > 0 &&
-                        props.offsetX > 0;
-        return (
-            <div style={{
+        var bgX = -(props.offsetX * magX - halfSize);
+        var bgY = -(props.offsetY * magY - halfSize);
+        var isVisible = props.offsetY < props.smallImage.height && props.offsetX < props.smallImage.width && props.offsetY > 0 && props.offsetX > 0;
+        return React.createElement('div', { style: {
                 position: 'absolute',
                 display: isVisible ? 'block' : 'none',
                 top: props.y,
@@ -63,33 +72,31 @@ var Magnifier = React.createClass({
                 marginTop: -halfSize + props.cursorOffset.y,
                 backgroundColor: 'white',
                 borderRadius: props.size,
-                boxShadow: `1px 1px 6px rgba(0,0,0,0.3)`
-            }}>
-                <div style={{
-                    width: props.size,
-                    height: props.size,
-                    backgroundImage: `url(${props.zoomImage.src})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: `${bgX}px ${bgY}px`,
-                    borderRadius: props.size
-                }} />
-            </div>
-        );
+                boxShadow: '1px 1px 6px rgba(0,0,0,0.3)'
+            } }, React.createElement('div', { style: {
+                width: props.size,
+                height: props.size,
+                backgroundImage: 'url(' + props.zoomImage.src + ')',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: bgX + 'px ' + bgY + 'px',
+                borderRadius: props.size
+            } }));
     }
 });
 
 function getOffset(el) {
     var x = 0;
     var y = 0;
-    while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
+    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
         x += el.offsetLeft - el.scrollLeft;
         y += el.offsetTop - el.scrollTop;
         el = el.offsetParent;
     }
-    return { x, y };
+    return { x: x, y: y };
 }
 
 var ImageMagnifier = React.createClass({
+    displayName: 'ImageMagnifier',
 
     propTypes: {
 
@@ -119,14 +126,13 @@ var ImageMagnifier = React.createClass({
 
     portalElement: null,
 
-    getDefaultProps () {
+    getDefaultProps: function getDefaultProps() {
         return {
             size: 200,
             cursorOffset: { x: 0, y: 0 }
         };
     },
-
-    getInitialState () {
+    getInitialState: function getInitialState() {
         return {
             x: 0,
             y: 0,
@@ -134,8 +140,7 @@ var ImageMagnifier = React.createClass({
             offsetY: -1
         };
     },
-
-    componentDidMount() {
+    componentDidMount: function componentDidMount() {
         document.addEventListener('mousemove', this.onMouseMove);
         if (!this.portalElement) {
             this.portalElement = document.createElement('div');
@@ -143,14 +148,12 @@ var ImageMagnifier = React.createClass({
         }
         this.componentDidUpdate();
     },
-
-    componentWillUnmount() {
+    componentWillUnmount: function componentWillUnmount() {
         document.removeEventListener('mousemove', this.onMouseMove);
         document.body.removeChild(this.portalElement);
         this.portalElement = null;
     },
-
-    onMouseMove (e) {
+    onMouseMove: function onMouseMove(e) {
         var offset = getOffset(this.getDOMNode());
 
         this.setState({
@@ -160,21 +163,22 @@ var ImageMagnifier = React.createClass({
             offsetY: e.y - offset.y
         });
     },
+    componentDidUpdate: function componentDidUpdate() {
+        var isVisible = !(this.refs.image.getDOMNode().offsetParent == null);
 
-    componentDidUpdate() {
-        React.render(<Magnifier
-            size={this.props.size}
-            smallImage={this.props.image}
-            zoomImage={this.props.zoomImage}
-            cursorOffset={this.props.cursorOffset}
-            {...this.state}
-        />, this.portalElement);
+        if (isVisible) {
+            React.render(React.createElement(Magnifier, _extends({
+                size: this.props.size,
+                smallImage: this.props.image,
+                zoomImage: this.props.zoomImage,
+                cursorOffset: this.props.cursorOffset
+            }, this.state)), this.portalElement);
+        } else {
+            React.unmountComponentAtNode(this.portalElement);
+        }
     },
-
-    render () {
-        return (
-            <img {...this.props} src={this.props.image.src} />
-        );
+    render: function render() {
+        return React.createElement('img', _extends({}, this.props, { src: this.props.image.src, ref: "image" }));
     }
 });
 
